@@ -1,5 +1,8 @@
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Stack;
 
 /**
@@ -16,6 +19,14 @@ public class ImageData {
     public static int redMask = 0xff0000;
     public static int alphaMask = 0xff000000;
 
+    public static final int[][] averageColorMatrix = {{ 1, 1, 1 },
+                                                      { 1, 4, 1 },
+                                                      { 1, 1, 1 }};
+
+    public static final int[][] edgeDetectionMatrix = { { -1, -1, -1 },
+                                                        { -1, 8, -1 },
+                                                        { -1, -1, -1 }};
+    
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -29,6 +40,13 @@ public class ImageData {
             }
             
         }
+    }
+
+    public ImageData(int[][] colorData, String filename) {
+        name = filename;
+        width = colorData.length;
+        height = colorData[0].length;
+        Color2d = colorData;
     }
 
     // Begin bit-level magic
@@ -60,41 +78,50 @@ public class ImageData {
 
     //Finds the average color in a floodfilled area.
     public int averageAreaColor(int x, int y, int tolerance){
-            System.out.println("Starting fill at "+x+", "+y);
-            Stack<Integer[]> stack = new Stack<Integer[]>();
-            boolean[][] visited = new boolean[width][height];
-            int totalPixels = 0;
-            stack.push(new Integer[]{x,y});
-            int[] totalsRGB = new int[3];
+        int topBound = y;
+        int bottomBound = y;
+        int rightBound = x;
+        int leftBound = x;
+        System.out.println("Starting fill at "+x+", "+y);
+        Stack<Integer[]> stack = new Stack<Integer[]>();
+        boolean[][] visited = new boolean[width][height];
+        int totalPixels = 0;
+        stack.push(new Integer[]{x,y});
+        int[] totalsRGB = new int[3];
 
-            while(!stack.isEmpty()){
-                Integer[] current = stack.pop();
-                x = current[0];
-                y = current[1];
+        while(!stack.isEmpty()){
+            Integer[] current = stack.pop();
+            x = current[0];
+            y = current[1];
 
-                if(!visited[x][y]) {
-                    totalPixels++;
-                    visited[x][y] = true;
-                    for (int i = -1; i < 2; i++) {
-                        for (int j = -1; j < 2; j++) {
-                            if (i != j && x + i >= 0 && x + i < width && y + j >= 0 && y + j < height
-                                    && colorDifference(Color2d[x + i][y + j], Color2d[x][y]) <= tolerance) {
-                                stack.push(new Integer[]{x + i, y + j});
-                            }
+            if(!visited[x][y]) {
+                if(x<leftBound) leftBound = x;
+                if(x>rightBound) rightBound = x;
+                if(y<topBound) topBound = y;
+                if(y>bottomBound) bottomBound = y;
+                totalPixels++;
+                visited[x][y] = true;
+                for (int i = -1; i < 2; i++) {
+                    for (int j = -1; j < 2; j++) {
+                        if (i != j && x + i >= 0 && x + i < width && y + j >= 0 && y + j < height
+                                && colorDifference(Color2d[x + i][y + j], Color2d[x][y]) <= tolerance) {
+                            stack.push(new Integer[]{x + i, y + j});
                         }
                     }
-                    totalsRGB[0] += getRed(Color2d[x][y])&0xFF;
-                    totalsRGB[1] += getGreen(Color2d[x][y])&0xFF;
-                    totalsRGB[2] += getBlue(Color2d[x][y])&0xFF;
                 }
+                totalsRGB[0] += getRed(Color2d[x][y])&0xFF;
+                totalsRGB[1] += getGreen(Color2d[x][y])&0xFF;
+                totalsRGB[2] += getBlue(Color2d[x][y])&0xFF;
             }
-            System.out.println(totalsRGB[0]+" "+totalsRGB[1]+" "+totalsRGB[2]);
-            System.out.println(totalPixels);
-            return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
-                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
         }
+        System.out.println(bottomBound+" "+topBound+" "+leftBound+" "+rightBound);
+        System.out.println(totalsRGB[0]+" "+totalsRGB[1]+" "+totalsRGB[2]);
+        System.out.println(totalPixels);
+        return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
+                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
+    }
 
-    public int colorDifference(int color1, int color2){
+    public static int colorDifference(int color1, int color2){
         int red1 = getRed(color1)&0xFF;
         int red2 = getRed(color2)&0xFF;
         int redDiff = Math.abs((getRed(color1)&0xFF)-(getRed(color2)&0xFF));
@@ -117,27 +144,36 @@ public class ImageData {
 
     // Returns a byte array for network streaming
     public byte[] toByteArray() {
-        byte[] unpackedImage = new byte[width * height];
+        byte[] unpackedImage = new byte[width * height * 4];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int pixel = Color2d[x][y];
-                unpackedImage[x + y * width] = getRed(pixel);
-                unpackedImage[x + y * width + 1] = getGreen(pixel);
-                unpackedImage[x + y * width + 2] = getBlue(pixel);
-                unpackedImage[x + y * width + 3] = getAlpha(pixel);
+                unpackedImage[(x + y * width) * 4] = getRed(pixel);
+                unpackedImage[(x + y * width) * 4 + 1] = getGreen(pixel);
+                unpackedImage[(x + y * width) * 4 + 2] = getBlue(pixel);
+                unpackedImage[(x + y * width) * 4 + 3] = getAlpha(pixel);
             }
         }
         return unpackedImage;
     }
 
     // Finds the average color of a pixel and its 8 surrounding pixels
-    private int averageColor(int x, int y) {
-        int[][] subArray = new int[3][3];
-        int[][] pixelWeight = { { 1, 1, 1 },
+    public int averageColor(int x, int y) {
+        int[][] pixelWeight = {
+                                { 1, 1, 1 },
                                 { 1, 4, 1 },
-                                { 1, 1, 1,} };
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <=1; j++) {
+                                { 1, 1, 1 }};
+        return convolutePixel(x, y, pixelWeight);
+    }
+
+    private int convolutePixel(int x, int y, int pixelWeight[][]) {
+        int length = pixelWeight.length;
+        if (length % 2 == 0 || length != pixelWeight[0].length)
+            throw new IllegalArgumentException("Convolution matrix must be square with odd sides");
+
+        int[][] subArray = new int[length][length];
+        for (int i = -(length / 2); i <= length / 2; i++) {
+            for (int j = -(length / 2); j <=length / 2; j++) {
                 int indx = x + i;
                 int indy = y + j;
                 if (indx < 0)
@@ -148,13 +184,13 @@ public class ImageData {
                     indy = 0;
                 if (indy >= height)
                     indy = height - 1;
-                subArray[i + 1][j + 1] = Color2d[indx][indy];
+                subArray[i + length / 2][j + length / 2] = Color2d[indx][indy];
             }
         }
         int[] colorSums = new int[4];
         int totalWeight = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
                 colorSums[0] += (getRed(subArray[i][j]) & 0xff) * pixelWeight[i][j];
                 colorSums[1] = (getGreen(subArray[i][j]) & 0xff) * pixelWeight[i][j];
                 colorSums[2] = (getBlue(subArray[i][j]) & 0xff) * pixelWeight[i][j];
@@ -165,5 +201,35 @@ public class ImageData {
 
         return newPixel((byte)(colorSums[0] / totalWeight), (byte)(colorSums[1] / totalWeight),
                 (byte)(colorSums[2] / totalWeight), (byte)(colorSums[3] / totalWeight));
+    }
+
+    public ImageData newConvoluteImage(int[][] convolutionMatrix) {
+        int[][] rawData = new int[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                rawData[x][y] = convolutePixel(x, y, convolutionMatrix);
+            }
+        }
+        return new ImageData(rawData, name);
+    }
+
+    public void convoluteImage(int[][] convolutionMatrix) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Color2d[x][y] = convolutePixel(x, y, convolutionMatrix);
+            }
+        }
+    }
+
+    public BufferedImage toBufferedImage() {
+        int[] rawData = new int[width * height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                rawData[x + y * width] = Color2d[x][y];
+            }
+        }
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, width, height, rawData, 0, width);
+        return img;
     }
 }
