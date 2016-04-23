@@ -14,6 +14,7 @@ public class ImageData {
     public static int greenMask = 0xff00;
     public static int blueMask = 0xff0000;
     public static int alphaMask = 0xff000000;
+
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -25,6 +26,23 @@ public class ImageData {
             for (int y = 0; y < height; y++) {
                 Color2d[x][y] = RawData[x * width + y];
             }
+            
         }
+    }
+
+    public static int getRed(int pixel) {
+        return pixel & redMask;
+    }
+
+    public static int getGreen(int pixel) {
+        return (pixel & greenMask) >> 8;
+    }
+
+    public static int getBlue(int pixel) {
+        return (pixel & blueMask) >> 16;
+    }
+
+    public static int getAlpha(int pixel) {
+        return (pixel & alphaMask) >> 24;
     }
 }
