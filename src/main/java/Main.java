@@ -19,7 +19,7 @@ public class Main {
         String imageFileName = in.nextLine();
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File("test-images/pill.jpg"));
+            img = ImageIO.read(new File("test-images/pill6.jpg"));
         } catch (IOException e) {
             System.out.println("ERROR: could not read image.");
             System.exit(0);
@@ -29,8 +29,9 @@ public class Main {
 
         ImageData Image = new ImageData(img, imageFileName);
         //System.out.println(Image.toString());
-        //Image.convoluteImage(ImageData.horizontalEdgeMatrix);
-        //Image.convoluteImage(ImageData.verticalEdgeMatrix);
+        ImageData Horizontal = Image.newConvoluteImage(ImageData.horizontalEdgeMatrix);
+        ImageData Vertical = Image.newConvoluteImage(ImageData.verticalEdgeMatrix);
+        //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
         //System.out.println(Image.toString());
         Image.writeImage("test.png");
         System.out.printf("Average color is %d\n", Image.averageColor(200, 200));

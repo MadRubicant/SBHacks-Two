@@ -32,10 +32,18 @@ public class ImageData {
     public static final int[][] verticalEdgeMatrix = {{1, 0, -1},
                                                       {1, 0, -1},
                                                       {1, 0, -1}};
+
+    public static final int[][] diagonalEdgeMatrix = {{1, 1, 0},
+                                                      {1, 0, -1},
+                                                      {0, -1, -1}};
+
     public static final int[][] identityMatrix = {{0, 0, 0},
                                                   {0, 1, 0},
                                                   {0, 0, 0}};
 
+    public static final int[][] laplaceMatrix = {{0, -1, 0},
+                                                 {-1, 4, -1},
+                                                 {0, -1, 0}};
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -60,23 +68,23 @@ public class ImageData {
     }
 
     // Begin bit-level magic
-    public static byte getRed(int pixel) {
-        return (byte)((pixel & redMask)>>16);
+    public static int getRed(int pixel) {
+        return ((pixel & redMask)>>16);
     }
 
-    public static byte getGreen(int pixel) {
-        return (byte)((pixel & greenMask) >> 8);
+    public static int getGreen(int pixel) {
+        return (pixel & greenMask) >> 8;
     }
 
-    public static byte getBlue(int pixel) {
-        return (byte)((pixel & blueMask));
+    public static int getBlue(int pixel) {
+        return ((pixel & blueMask));
     }
 
-    public static byte getAlpha(int pixel) {
-        return (byte)((pixel & alphaMask) >> 24);
+    public static int getAlpha(int pixel) {
+        return ((pixel & alphaMask) >> 24);
     }
 
-    public static int newPixel(byte r, byte g, byte b, byte a) {
+    public static int newPixel(int r, int g, int b, int a) {
         int pixel = 0;
         pixel |= (a & 0xff) << 24;
         pixel |= (r & 0xff) << 16;
@@ -127,8 +135,8 @@ public class ImageData {
         System.out.println(bottomBound+" "+topBound+" "+leftBound+" "+rightBound);
         System.out.println(totalsRGB[0]+" "+totalsRGB[1]+" "+totalsRGB[2]);
         System.out.println(totalPixels);
-        return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
-                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
+        return newPixel((totalsRGB[0]/totalPixels), (totalsRGB[1]/totalPixels),
+                (totalsRGB[2]/totalPixels),0xFF);
     }
 
     public static int colorDifference(int color1, int color2){
@@ -158,10 +166,10 @@ public class ImageData {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int pixel = Color2d[x][y];
-                unpackedImage[(x + y * width) * 4] = getRed(pixel);
-                unpackedImage[(x + y * width) * 4 + 1] = getGreen(pixel);
-                unpackedImage[(x + y * width) * 4 + 2] = getBlue(pixel);
-                unpackedImage[(x + y * width) * 4 + 3] = getAlpha(pixel);
+                unpackedImage[(x + y * width) * 4] = (byte)getRed(pixel);
+                unpackedImage[(x + y * width) * 4 + 1] = (byte)getGreen(pixel);
+                unpackedImage[(x + y * width) * 4 + 2] = (byte)getBlue(pixel);
+                unpackedImage[(x + y * width) * 4 + 3] = (byte)getAlpha(pixel);
             }
         }
         return unpackedImage;
@@ -203,9 +211,9 @@ public class ImageData {
         int negWeight = 0;
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
-                colorSums[0] += (getRed(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                colorSums[1] += (getGreen(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                colorSums[2] += (getBlue(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                colorSums[0] += (getRed(subArray[i][j])) * pixelWeight[i][j];
+                colorSums[1] += (getGreen(subArray[i][j])) * pixelWeight[i][j];
+                colorSums[2] += (getBlue(subArray[i][j])) * pixelWeight[i][j];
                 if (pixelWeight[i][j] > 0)
                     posWeight += pixelWeight[i][j];
                 else if (pixelWeight[i][j] < 0)
@@ -213,8 +221,8 @@ public class ImageData {
             }
         }
         totalWeight = Math.max(posWeight, Math.abs(negWeight));
-        return newPixel((byte)(colorSums[0] / totalWeight), (byte)(colorSums[1] / totalWeight),
-                (byte)(colorSums[2] / totalWeight), (byte)0xff);
+        return newPixel((colorSums[0] / totalWeight), (colorSums[1] / totalWeight),
+                (colorSums[2] / totalWeight), 0xff);
     }
 
     public ImageData newConvoluteImage(int[][] convolutionMatrix) {
@@ -228,20 +236,22 @@ public class ImageData {
     }
 
     public void convoluteImage(int[][] convolutionMatrix) {
+        int[][] rawData = new int[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                Color2d[x][y] = convolutePixel(x, y, convolutionMatrix);
+                rawData[x][y] = convolutePixel(x, y, convolutionMatrix);
             }
         }
+        Color2d = rawData;
     }
 
     public void convertToLuminosity() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int pixel = Color2d[x][y];
-                float luminance = .2126f * (0xff & getRed(pixel)) + .7152f * (0xff & getGreen(pixel)) + .0722f * (0xff & getBlue(pixel));
-                int intlum = Math.round(luminance * 0xff);
-                Color2d[x][y] = newPixel((byte)intlum, (byte)intlum, (byte)intlum, (byte)0xff);
+                int luminance = 299 * (getRed(pixel)) + 587 * ( getGreen(pixel)) + 114 * (getBlue(pixel));
+                luminance /= 1000;
+                Color2d[x][y] = newPixel(luminance, luminance, luminance, 0xff);
             }
         }
         // Luminosity = 0.2126*R + 0.7152*G + 0.0722*B
@@ -265,5 +275,17 @@ public class ImageData {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ImageData averageWith(ImageData img) {
+        if (width != img.width || height != img.height)
+            throw new IllegalArgumentException("Can only average two images of the same size");
+        int[][] rawImage = new int[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+            }
+        }
+        return null;
     }
 }
