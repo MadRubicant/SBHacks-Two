@@ -2,7 +2,9 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Stack;
 
 /**
@@ -23,10 +25,17 @@ public class ImageData {
                                                       { 1, 4, 1 },
                                                       { 1, 1, 1 }};
 
-    public static final int[][] edgeDetectionMatrix = { { -1, -1, -1 },
-                                                        { -1, 8, -1 },
+    public static final int[][] horizontalEdgeMatrix = { { 1, 1, 1 },
+                                                        { 0, 0, 0 },
                                                         { -1, -1, -1 }};
-    
+
+    public static final int[][] verticalEdgeMatrix = {{1, 0, -1},
+                                                      {1, 0, -1},
+                                                      {1, 0, -1}};
+    public static final int[][] identityMatrix = {{0, 0, 0},
+                                                  {0, 1, 0},
+                                                  {0, 0, 0}};
+
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -40,6 +49,7 @@ public class ImageData {
             }
             
         }
+        convertToLuminosity();
     }
 
     public ImageData(int[][] colorData, String filename) {
@@ -68,10 +78,10 @@ public class ImageData {
 
     public static int newPixel(byte r, byte g, byte b, byte a) {
         int pixel = 0;
-        pixel |= ((a << 24)&alphaMask);
-        pixel |= ((r << 16)&redMask);
-        pixel |= ((g << 8)&greenMask);
-        pixel |= b&blueMask;
+        pixel |= (a & 0xff) << 24;
+        pixel |= (r & 0xff) << 16;
+        pixel |= (g & 0xff) << 8;
+        pixel |= (b & 0xff);
         return pixel;
     }
     // End bit-level magic
@@ -189,18 +199,22 @@ public class ImageData {
         }
         int[] colorSums = new int[4];
         int totalWeight = 0;
+        int posWeight = 0;
+        int negWeight = 0;
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 colorSums[0] += (getRed(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                colorSums[1] = (getGreen(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                colorSums[2] = (getBlue(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                colorSums[3] = (getAlpha(subArray[i][j]) & 0xff) * pixelWeight[i][j];
-                totalWeight += pixelWeight[i][j];
+                colorSums[1] += (getGreen(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                colorSums[2] += (getBlue(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                if (pixelWeight[i][j] > 0)
+                    posWeight += pixelWeight[i][j];
+                else if (pixelWeight[i][j] < 0)
+                    negWeight += pixelWeight[i][j];
             }
         }
-
+        totalWeight = Math.max(posWeight, Math.abs(negWeight));
         return newPixel((byte)(colorSums[0] / totalWeight), (byte)(colorSums[1] / totalWeight),
-                (byte)(colorSums[2] / totalWeight), (byte)(colorSums[3] / totalWeight));
+                (byte)(colorSums[2] / totalWeight), (byte)0xff);
     }
 
     public ImageData newConvoluteImage(int[][] convolutionMatrix) {
@@ -221,6 +235,17 @@ public class ImageData {
         }
     }
 
+    public void convertToLuminosity() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int pixel = Color2d[x][y];
+                float luminance = .2126f * (0xff & getRed(pixel)) + .7152f * (0xff & getGreen(pixel)) + .0722f * (0xff & getBlue(pixel));
+                int intlum = Math.round(luminance * 0xff);
+                Color2d[x][y] = newPixel((byte)intlum, (byte)intlum, (byte)intlum, (byte)0xff);
+            }
+        }
+        // Luminosity = 0.2126*R + 0.7152*G + 0.0722*B
+    }
     public BufferedImage toBufferedImage() {
         int[] rawData = new int[width * height];
         for (int x = 0; x < width; x++) {
@@ -231,5 +256,14 @@ public class ImageData {
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         img.setRGB(0, 0, width, height, rawData, 0, width);
         return img;
+    }
+
+    public void writeImage(String filename) {
+        Path p = Paths.get(filename);
+        try {
+            ImageIO.write(toBufferedImage(), "png", p.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
