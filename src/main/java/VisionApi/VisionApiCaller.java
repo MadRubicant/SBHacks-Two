@@ -22,7 +22,12 @@ public class VisionApiCaller {
 
     public void sendApiRequest(){
         ApiImage image;
-        AnnotateImageRequest imageRequestObj = new AnnotateI
+        AnnotateImageRequest imageRequestObj = new AnnotateImageRequest();
+        GoogleVisionRequest apiRequestObj = new GoogleVisionRequest();
+    }
+
+    public void makePost(GoogleVisionRequest request) throws Exception{
+        URL apiUrl = new URL(VISION_API_URL);
 
         HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
 
@@ -33,9 +38,3 @@ public class VisionApiCaller {
         return Base64.getEncoder().encodeToString(imageToUpload);
     }
 }
-    mageRequest();
-        GoogleVisionRequest apiRequestObj = new GoogleVisionRequest();
-    }
-
-    public void makePost(GoogleVisionRequest request) throws Exception{
-        URL apiUrl = new URL(VISION_API_URL);
