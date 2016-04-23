@@ -3,9 +3,11 @@
  */
 
 import VisionApi.VisionApiCaller;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
 
 import java.awt.image.*;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Scanner;
 import javax.imageio.*;
 import java.io.*;
@@ -22,14 +24,24 @@ public class Main {
             System.out.println("ERROR: could not read image.");
             System.exit(0);
         }
+
+        System.out.println("Successfully read image.");
+
         ImageData Image = new ImageData(img, imageFileName);
         Image.toBufferedImage();
         System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
-        System.out.println("Successfully read image.");
 
         VisionApiCaller apiCaller = new VisionApiCaller(Paths.get(imageFileName));
+        List<EntityAnnotation> textAnnotations = apiCaller.sendApiRequest();
 
-        // apiCaller.sendApiRequest();
+        if(textAnnotations != null){
+            // do_stuff
+        }
+        else{
+            System.out.println("Sorry, no text found.");
+
+            // do other stuff
+        }
 
         if(true) return;
 
