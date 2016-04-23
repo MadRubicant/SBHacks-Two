@@ -17,9 +17,16 @@ public class Main {
         Scanner in = new Scanner(System.in);
 
         String imageFileName = in.nextLine();
+
+        if(imageFileName.equals("serve")){
+            Server server = new Server();
+            server.setup();
+            return;
+        }
+
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File("test-images/pill6.jpg"));
+            img = ImageIO.read(new File(imageFileName));
         } catch (IOException e) {
             System.out.println("ERROR: could not read image.");
             System.exit(0);
