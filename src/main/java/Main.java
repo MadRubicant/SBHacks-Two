@@ -73,6 +73,7 @@ public class Main {
         ImageData Cardinal = Horizontal.averageWith(Vertical);
         ImageData Diag = DiagLeft.averageWith(DiagRight);
         Image = Cardinal.averageWith(Diag);
+        Image.convoluteImage(ImageData.averageColorMatrix);
         //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
         //System.out.println(Image.toString());
         Image.writeImage("test.png");

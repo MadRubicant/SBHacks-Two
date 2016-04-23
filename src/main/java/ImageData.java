@@ -50,9 +50,12 @@ public class ImageData {
             {1, 0, -1, -2, -3},
             {0, -1, -2, 3, -3}};
 
-    public static final int[][] leftDiagonalEdgeMatrix = {{0, 1, 1},
-                                                          {-1, 0, 1},
-                                                          {-1, -1, 0}};
+    public static final int[][] leftDiagonalEdgeMatrix = {
+            {0, 1, 2, 3, 3},
+            {-1, 0, 1, 2, 3},
+            {-2, -1, 0, 1, 2},
+            {-3, -2, -1, 0, 1},
+            {-3, -3, -2, -1, 0}};
 
     public static final int[][] identityMatrix = {{0, 0, 0},
                                                   {0, 1, 0},
