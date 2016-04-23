@@ -1,5 +1,7 @@
 package VisionApi;
 
+import VisionApi.JSONClasses.*;
+import com.google.gson.Gson;
 import VisionApi.JSONClasses.AnnotateImageRequest;
 import VisionApi.JSONClasses.ApiImage;
 import VisionApi.JSONClasses.GoogleVisionRequest;
@@ -20,18 +22,84 @@ public class VisionApiCaller {
         imageToUpload = image;
     }
 
-    public void sendApiRequest(){
-        ApiImage image;
-        AnnotateImageRequest imageRequestObj = new AnnotateImageRequest();
-        GoogleVisionRequest apiRequestObj = new GoogleVisionRequest();
+    public GoogleVisionResponse sendApiRequest(){
+        GoogleVisionRequest requestObj = buildRequest();
+        try {
+            return makePost(requestObj);
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
-    public void makePost(GoogleVisionRequest request) throws Exception{
+    public Feature[] makeFeatures(){
+        Feature[] ret = new Feature[3];
+        for(int i = 0; i < ret.length; i++){
+            ret[i] = new Feature();
+        }
+
+        ret[0].maxResults = 20;
+        ret[0].type = "TEXT_DETECTION";
+
+        ret[1].maxResults = 20;
+        ret[1].type = "FACE_DETECTION";
+
+        ret[2].maxResults = 20;
+        ret[2].type = "IMAGE_PROPERTIES";
+
+        return ret;
+    }
+
+    public GoogleVisionRequest buildRequest(){
+        ApiImage image = new ApiImage();
+        image.content = base64Encode();
+
+        AnnotateImageRequest imageRequestObj = new AnnotateImageRequest();
+        imageRequestObj.image = image;
+        imageRequestObj.features = makeFeatures();
+
+        GoogleVisionRequest apiRequestObj = new GoogleVisionRequest();
+        apiRequestObj.requests = new AnnotateImageRequest[1];
+        apiRequestObj.requests[0] = imageRequestObj;
+
+        return apiRequestObj;
+    }
+
+    public GoogleVisionResponse makePost(GoogleVisionRequest request) throws Exception{
+        Gson gson = new Gson();
+
         URL apiUrl = new URL(VISION_API_URL);
+
+        String requestString = gson.toJson(request);
+        System.out.println(requestString);
 
         HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
 
         connection.setRequestMethod("POST");
+        DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
+        writer.write(requestString.getBytes());
+        writer.flush();
+        writer.close();
+
+        int responseCode = connection.getResponseCode();
+
+        if(responseCode % 100 != 2) throw new IOException("API request returned code " + responseCode);
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        String line;
+        StringBuilder response = new StringBuilder();
+
+        while((line = in.readLine()) != null){
+            response.append(line + "\n");
+        }
+        in.close();
+        connection.disconnect();
+
+        System.out.println(response.toString());
+
+        return gson.fromJson(response.toString(), GoogleVisionResponse.class);
     }
 
     public String base64Encode(){
