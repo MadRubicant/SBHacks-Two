@@ -56,7 +56,7 @@ public class ImageData {
     // End bit-level magic
 
     //Finds the average color in a floodfilled area.
-    public int[] averageColor(int x, int y, int tolerance){
+    public int[] averageAreaColor(int x, int y, int tolerance){
         Stack<Integer[]> stack = new Stack<Integer[]>();
         stack.push(new Integer[]{x,y});
         int[] totalsRGB = new int[3];
@@ -77,6 +77,7 @@ public class ImageData {
         return result;
     }
 
+    // Returns a byte array for network streaming
     public byte[] toByteArray() {
         byte[] unpackedImage = new byte[width * height];
         for (int x = 0; x < width; x++) {
@@ -91,6 +92,7 @@ public class ImageData {
         return unpackedImage;
     }
 
+    // Finds the average color of a pixel and its 8 surrounding pixels
     public int averageColor(int x, int y) {
         int[][] subArray = new int[3][3];
         int[][] pixelWeight = { { 1, 1, 1 },
