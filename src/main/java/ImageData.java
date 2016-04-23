@@ -117,14 +117,14 @@ public class ImageData {
 
     // Returns a byte array for network streaming
     public byte[] toByteArray() {
-        byte[] unpackedImage = new byte[width * height];
+        byte[] unpackedImage = new byte[width * height * 4];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int pixel = Color2d[x][y];
-                unpackedImage[x + y * width] = getRed(pixel);
-                unpackedImage[x + y * width + 1] = getGreen(pixel);
-                unpackedImage[x + y * width + 2] = getBlue(pixel);
-                unpackedImage[x + y * width + 3] = getAlpha(pixel);
+                unpackedImage[(x + y * width) * 4] = getRed(pixel);
+                unpackedImage[(x + y * width) * 4 + 1] = getGreen(pixel);
+                unpackedImage[(x + y * width) * 4 + 2] = getBlue(pixel);
+                unpackedImage[(x + y * width) * 4 + 3] = getAlpha(pixel);
             }
         }
         return unpackedImage;
