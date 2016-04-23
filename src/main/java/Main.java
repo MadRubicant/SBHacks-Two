@@ -2,7 +2,6 @@
  * Created by john on 4/22/16.
  */
 
-import VisionApi.JSONClasses.GoogleVisionResponse;
 import VisionApi.VisionApiCaller;
 
 import java.awt.image.*;
@@ -26,10 +25,10 @@ public class Main {
         ImageData Image = new ImageData(img, imageFileName);
         System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
         System.out.println("Successfully read image.");
-        
+
         VisionApiCaller apiCaller = new VisionApiCaller(Paths.get(imageFileName));
 
-        apiCaller.sendApiRequest();
+        // apiCaller.sendApiRequest();
 
         if(true) return;
 
