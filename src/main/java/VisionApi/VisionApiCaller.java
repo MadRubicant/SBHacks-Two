@@ -1,112 +1,121 @@
 package VisionApi;
 
-import VisionApi.JSONClasses.*;
-import com.google.gson.Gson;
-import VisionApi.JSONClasses.AnnotateImageRequest;
-import VisionApi.JSONClasses.ApiImage;
-import VisionApi.JSONClasses.GoogleVisionRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionScopes;
+import com.google.api.services.vision.v1.model.*;
+import com.google.common.collect.ImmutableList;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Base64;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
+import java.util.List;
+
+import javax.imageio.ImageIO;
 
 /**
  * Created by john on 4/22/16.
  */
 public class VisionApiCaller {
     public static final String VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate";
+    private static final String APPLICATION_NAME = "sbhacks2";
 
-    byte[] imageToUpload;
+    Path imageToUpload;
+    private Vision vision;
 
-    public VisionApiCaller(byte[] image){
+    public VisionApiCaller(Path image){
         imageToUpload = image;
     }
 
-    public GoogleVisionResponse sendApiRequest(){
-        GoogleVisionRequest requestObj = buildRequest();
+    public void sendApiRequest(){
         try {
-            return makePost(requestObj);
+            vision = getVisionService();
+            List<EntityAnnotation> textAnnotations = detectText(20);
+            writeWithTextAnnotations(imageToUpload, Paths.get("out_img.jpg"), textAnnotations);
         }
-        catch(Exception e){
+        catch (Exception e){
             System.out.println(e.getMessage());
-            return null;
+            e.printStackTrace(System.out);
+            return;
         }
     }
 
-    public Feature[] makeFeatures(){
-        Feature[] ret = new Feature[3];
-        for(int i = 0; i < ret.length; i++){
-            ret[i] = new Feature();
+    private static Vision getVisionService() throws IOException, GeneralSecurityException {
+        GoogleCredential credential =
+                GoogleCredential.getApplicationDefault().createScoped(VisionScopes.all());
+        JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+        return new Vision.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+    }
+
+    public List<EntityAnnotation> detectText(int maxResults) throws IOException {
+        byte[] data = Files.readAllBytes(imageToUpload);
+
+        AnnotateImageRequest request =
+                new AnnotateImageRequest()
+                        .setImage(new Image().encodeContent(data))
+                        .setFeatures(ImmutableList.of(
+                                new Feature()
+                                        .setType("TEXT_DETECTION")
+                                        .setType("LABEL_DETECTION")
+                                        .setType("IMAGE_PROPERTIES")
+                                        .setMaxResults(maxResults)));
+        Vision.Images.Annotate annotate =
+                vision.images()
+                        .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
+        // Due to a bug: requests to Vision API containing large images fail when GZipped.
+        annotate.setDisableGZipContent(true);
+
+        BatchAnnotateImagesResponse batchResponse = annotate.execute();
+        assert batchResponse.getResponses().size() == 1;
+        AnnotateImageResponse response = batchResponse.getResponses().get(0);
+        if (response.getTextAnnotations() == null) {
+            throw new IOException(
+                    response.getError() != null
+                            ? response.getError().getMessage()
+                            : "Unknown error getting image annotations");
         }
-
-        ret[0].maxResults = 20;
-        ret[0].type = "TEXT_DETECTION";
-
-        ret[1].maxResults = 20;
-        ret[1].type = "FACE_DETECTION";
-
-        ret[2].maxResults = 20;
-        ret[2].type = "IMAGE_PROPERTIES";
-
-        return ret;
+        return response.getTextAnnotations();
     }
 
-    public GoogleVisionRequest buildRequest(){
-        ApiImage image = new ApiImage();
-        image.content = base64Encode();
-
-        AnnotateImageRequest imageRequestObj = new AnnotateImageRequest();
-        imageRequestObj.image = image;
-        imageRequestObj.features = makeFeatures();
-
-        GoogleVisionRequest apiRequestObj = new GoogleVisionRequest();
-        apiRequestObj.requests = new AnnotateImageRequest[1];
-        apiRequestObj.requests[0] = imageRequestObj;
-
-        return apiRequestObj;
+    private static void writeWithTextAnnotations(Path inputPath, Path outputPath, List<EntityAnnotation> entities)
+            throws IOException {
+        BufferedImage img = ImageIO.read(inputPath.toFile());
+        annotateWithEntities(img, entities);
+        ImageIO.write(img, "jpg", outputPath.toFile());
     }
 
-    public GoogleVisionResponse makePost(GoogleVisionRequest request) throws Exception{
-        Gson gson = new Gson();
-
-        URL apiUrl = new URL(VISION_API_URL);
-
-        String requestString = gson.toJson(request);
-        System.out.println(requestString);
-
-        HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
-
-        connection.setRequestMethod("POST");
-        DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
-        writer.write(requestString.getBytes());
-        writer.flush();
-        writer.close();
-
-        int responseCode = connection.getResponseCode();
-
-        if(responseCode % 100 != 2) throw new IOException("API request returned code " + responseCode);
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-        String line;
-        StringBuilder response = new StringBuilder();
-
-        while((line = in.readLine()) != null){
-            response.append(line + "\n");
+    /**
+     * Annotates an image {@code img} with a polygon around each face in {@code entities}.
+     */
+    public static void annotateWithEntities(BufferedImage img, List<EntityAnnotation> entities) {
+        for (EntityAnnotation entity : entities) {
+            annotateWithEntity(img, entity);
         }
-        in.close();
-        connection.disconnect();
-
-        System.out.println(response.toString());
-
-        return gson.fromJson(response.toString(), GoogleVisionResponse.class);
     }
 
-    public String base64Encode(){
-        return Base64.getEncoder().encodeToString(imageToUpload);
+    /**
+     * Annotates an image {@code img} with a polygon defined by {@code entity}.
+     */
+    private static void annotateWithEntity(BufferedImage img, EntityAnnotation entity) {
+        Graphics2D gfx = img.createGraphics();
+        Polygon poly = new Polygon();
+        for (Vertex vertex : entity.getBoundingPoly().getVertices()) {
+            poly.addPoint(vertex.getX(), vertex.getY());
+        }
+        gfx.setStroke(new BasicStroke(5));
+        gfx.setColor(new Color(0x00ff00));
+        gfx.draw(poly);
     }
 }

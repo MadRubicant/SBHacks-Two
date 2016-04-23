@@ -2,9 +2,11 @@
  * Created by john on 4/22/16.
  */
 
+import VisionApi.JSONClasses.GoogleVisionResponse;
 import VisionApi.VisionApiCaller;
 
 import java.awt.image.*;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import javax.imageio.*;
 import java.io.*;
@@ -22,8 +24,13 @@ public class Main {
             System.exit(0);
         }
         ImageData Image = new ImageData(img, imageFileName);
-        VisionApiCaller apiCaller = new VisionApiCaller(Image.toByteArray());
         System.out.println("Successfully read image.");
+        VisionApiCaller apiCaller = new VisionApiCaller(Paths.get(imageFileName));
+
+        apiCaller.sendApiRequest();
+
+        if(true) return;
+
         ImageData data = new ImageData(img, imageFileName);
         System.out.println(data.toString());
 

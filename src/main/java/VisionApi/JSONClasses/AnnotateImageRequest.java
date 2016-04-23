@@ -5,5 +5,5 @@ package VisionApi.JSONClasses;
  */
 public class AnnotateImageRequest {
     public ApiImage image;
-    public Feature[] features;
+    public ApiFeature[] features;
 }
