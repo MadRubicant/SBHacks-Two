@@ -31,6 +31,7 @@ public class ImageData {
         }
     }
 
+    // Begin bit-level magic
     public static byte getRed(int pixel) {
         return (byte)(pixel & redMask);
     }
@@ -46,6 +47,13 @@ public class ImageData {
     public static byte getAlpha(int pixel) {
         return (byte)((pixel & alphaMask) >> 24);
     }
+
+    public static int newPixel(byte r, byte g, byte b, byte a) {
+        int pixel = 0;
+        pixel |= r | (g << 8) | (b << 16) | (a << 24);
+        return pixel;
+    }
+    // End bit-level magic
 
     //Finds the average color in a floodfilled area.
     public int[] averageColor(int x, int y, int tolerance){
@@ -81,5 +89,41 @@ public class ImageData {
             }
         }
         return unpackedImage;
+    }
+
+    public int averageColor(int x, int y) {
+        int[][] subArray = new int[3][3];
+        int[][] pixelWeight = { { 1, 1, 1 },
+                                { 1, 4, 1 },
+                                { 1, 1, 1,} };
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <=1; j++) {
+                int indx = x + i;
+                int indy = y + j;
+                if (indx < 0)
+                    indx = 0;
+                if (indx >= width)
+                    indx = width - 1;
+                if (indy < 0)
+                    indy = 0;
+                if (indy >= height)
+                    indy = height - 1;
+                subArray[i + 1][j + 1] = Color2d[indx][indy];
+            }
+        }
+        int[] colorSums = new int[4];
+        int totalWeight = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                colorSums[0] += getRed(subArray[i][j]) * pixelWeight[i][j];
+                colorSums[1] = getGreen(subArray[i][j]) * pixelWeight[i][j];
+                colorSums[2] = getBlue(subArray[i][j]) * pixelWeight[i][j];
+                colorSums[3] = getAlpha(subArray[i][j]) * pixelWeight[i][j];
+                totalWeight += pixelWeight[i][j];
+            }
+        }
+
+        return newPixel((byte)(colorSums[0] / totalWeight), (byte)(colorSums[1] / totalWeight),
+                (byte)(colorSums[2] / totalWeight), (byte)(colorSums[3] / totalWeight));
     }
 }
