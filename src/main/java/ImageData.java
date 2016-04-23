@@ -16,6 +16,14 @@ public class ImageData {
     public static int redMask = 0xff0000;
     public static int alphaMask = 0xff000000;
 
+    public static final int[][] averageColorMatrix = {{ 1, 1, 1 },
+                                                      { 1, 4, 1 },
+                                                      { 1, 1, 1 }};
+
+    public static final int[][] edgeDetectionMatrix = { { -1, -1, -1 },
+                                                        { -1, 8, -1 },
+                                                        { -1, -1, -1 }};
+    
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
