@@ -61,39 +61,48 @@ public class ImageData {
 
     //Finds the average color in a floodfilled area.
     public int averageAreaColor(int x, int y, int tolerance){
-            System.out.println("Starting fill at "+x+", "+y);
-            Stack<Integer[]> stack = new Stack<Integer[]>();
-            boolean[][] visited = new boolean[width][height];
-            int totalPixels = 0;
-            stack.push(new Integer[]{x,y});
-            int[] totalsRGB = new int[3];
+        int topBound = y;
+        int bottomBound = y;
+        int rightBound = x;
+        int leftBound = x;
+        System.out.println("Starting fill at "+x+", "+y);
+        Stack<Integer[]> stack = new Stack<Integer[]>();
+        boolean[][] visited = new boolean[width][height];
+        int totalPixels = 0;
+        stack.push(new Integer[]{x,y});
+        int[] totalsRGB = new int[3];
 
-            while(!stack.isEmpty()){
-                Integer[] current = stack.pop();
-                x = current[0];
-                y = current[1];
+        while(!stack.isEmpty()){
+            Integer[] current = stack.pop();
+            x = current[0];
+            y = current[1];
 
-                if(!visited[x][y]) {
-                    totalPixels++;
-                    visited[x][y] = true;
-                    for (int i = -1; i < 2; i++) {
-                        for (int j = -1; j < 2; j++) {
-                            if (i != j && x + i >= 0 && x + i < width && y + j >= 0 && y + j < height
-                                    && colorDifference(Color2d[x + i][y + j], Color2d[x][y]) <= tolerance) {
-                                stack.push(new Integer[]{x + i, y + j});
-                            }
+            if(!visited[x][y]) {
+                if(x<leftBound) leftBound = x;
+                if(x>rightBound) rightBound = x;
+                if(y<topBound) topBound = y;
+                if(y>bottomBound) bottomBound = y;
+                totalPixels++;
+                visited[x][y] = true;
+                for (int i = -1; i < 2; i++) {
+                    for (int j = -1; j < 2; j++) {
+                        if (i != j && x + i >= 0 && x + i < width && y + j >= 0 && y + j < height
+                                && colorDifference(Color2d[x + i][y + j], Color2d[x][y]) <= tolerance) {
+                            stack.push(new Integer[]{x + i, y + j});
                         }
                     }
-                    totalsRGB[0] += getRed(Color2d[x][y])&0xFF;
-                    totalsRGB[1] += getGreen(Color2d[x][y])&0xFF;
-                    totalsRGB[2] += getBlue(Color2d[x][y])&0xFF;
                 }
+                totalsRGB[0] += getRed(Color2d[x][y])&0xFF;
+                totalsRGB[1] += getGreen(Color2d[x][y])&0xFF;
+                totalsRGB[2] += getBlue(Color2d[x][y])&0xFF;
             }
-            System.out.println(totalsRGB[0] + " " + totalsRGB[1] + " " + totalsRGB[2]);
-            System.out.println(totalPixels);
-            return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
-                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
         }
+        System.out.println(bottomBound+" "+topBound+" "+leftBound+" "+rightBound);
+        System.out.println(totalsRGB[0]+" "+totalsRGB[1]+" "+totalsRGB[2]);
+        System.out.println(totalPixels);
+        return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
+                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
+    }
 
     public int colorDifference(int color1, int color2){
         int red1 = getRed(color1)&0xFF;
