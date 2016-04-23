@@ -35,6 +35,7 @@ public class Main {
         System.out.println("Successfully read image.");
 
         ImageData Image = new ImageData(img, imageFileName);
+        Image.toBufferedImage();
         System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
 
         VisionApiCaller apiCaller = new VisionApiCaller(Paths.get(imageFileName));
@@ -48,5 +49,11 @@ public class Main {
 
             // do other stuff
         }
+
+        if(true) return;
+
+        ImageData data = new ImageData(img, imageFileName);
+        //System.out.println(data.toString());
+
     }
 }

@@ -1,5 +1,8 @@
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Stack;
 
 /**
@@ -200,7 +203,7 @@ public class ImageData {
                 (byte)(colorSums[2] / totalWeight), (byte)(colorSums[3] / totalWeight));
     }
 
-    public ImageData convoluteImage(int[][] convolutionMatrix) {
+    public ImageData newConvoluteImage(int[][] convolutionMatrix) {
         int[][] rawData = new int[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -208,5 +211,25 @@ public class ImageData {
             }
         }
         return new ImageData(rawData, name);
+    }
+
+    public void convoluteImage(int[][] convolutionMatrix) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Color2d[x][y] = convolutePixel(x, y, convolutionMatrix);
+            }
+        }
+    }
+
+    public BufferedImage toBufferedImage() {
+        int[] rawData = new int[width * height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                rawData[x + y * width] = Color2d[x][y];
+            }
+        }
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, width, height, rawData, 0, width);
+        return img;
     }
 }
