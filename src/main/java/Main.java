@@ -17,6 +17,13 @@ public class Main {
         Scanner in = new Scanner(System.in);
 
         String imageFileName = in.nextLine();
+
+        if(imageFileName.equals("serve")){
+            Server server = new Server();
+            server.setup();
+            return;
+        }
+
         BufferedImage img = null;
         try {
             img = ImageIO.read(new File(imageFileName));
@@ -41,11 +48,5 @@ public class Main {
 
             // do other stuff
         }
-
-        if(true) return;
-
-        ImageData data = new ImageData(img, imageFileName);
-        System.out.println(data.toString());
-
     }
 }
