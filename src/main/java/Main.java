@@ -2,6 +2,8 @@
  * Created by john on 4/22/16.
  */
 
+import VisionApi.VisionApiCaller;
+
 import java.awt.image.*;
 import java.util.Scanner;
 import javax.imageio.*;
@@ -19,6 +21,8 @@ public class Main {
             System.out.println("ERROR: could not read image.");
             System.exit(0);
         }
+        ImageData Image = new ImageData(img, imageFileName);
+        VisionApiCaller apiCaller = new VisionApiCaller(Image.toByteArray());
         System.out.println("Successfully read image.");
         ImageData data = new ImageData(img, imageFileName);
         System.out.println(data.toString());

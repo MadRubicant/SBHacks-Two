@@ -155,10 +155,10 @@ public class ImageData {
         int totalWeight = 0;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                colorSums[0] += getRed(subArray[i][j]) * pixelWeight[i][j];
-                colorSums[1] = getGreen(subArray[i][j]) * pixelWeight[i][j];
-                colorSums[2] = getBlue(subArray[i][j]) * pixelWeight[i][j];
-                colorSums[3] = getAlpha(subArray[i][j]) * pixelWeight[i][j];
+                colorSums[0] += (getRed(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                colorSums[1] = (getGreen(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                colorSums[2] = (getBlue(subArray[i][j]) & 0xff) * pixelWeight[i][j];
+                colorSums[3] = (getAlpha(subArray[i][j]) & 0xff) * pixelWeight[i][j];
                 totalWeight += pixelWeight[i][j];
             }
         }
