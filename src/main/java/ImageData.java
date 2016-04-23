@@ -11,9 +11,9 @@ public class ImageData {
     public int height;
     public String name;
 
-    public static int redMask = 0xff;
+    public static int blueMask = 0xff;
     public static int greenMask = 0xff00;
-    public static int blueMask = 0xff0000;
+    public static int redMask = 0xff0000;
     public static int alphaMask = 0xff000000;
 
     public ImageData(BufferedImage inImage, String filename) {
@@ -56,21 +56,49 @@ public class ImageData {
     // End bit-level magic
 
     //Finds the average color in a floodfilled area.
-    public int[] averageAreaColor(int x, int y, int tolerance){
-        Stack<Integer[]> stack = new Stack<Integer[]>();
-        stack.push(new Integer[]{x,y});
-        int[] totalsRGB = new int[3];
-        while(!stack.isEmpty()){
-            stack.pop();
+    public int averageAreaColor(int x, int y, int tolerance){
+            Stack<Integer[]> stack = new Stack<Integer[]>();
+            boolean[][] visited = new boolean[width][height];
+            int totalPixels = 0;
+            stack.push(new Integer[]{x,y});
+            int[] totalsRGB = new int[3];
+
+            while(!stack.isEmpty()){
+                do {
+                    if(stack.isEmpty()) break;
+                    Integer[] current = stack.pop();
+                    x = current[0];
+                    y = current[1];
+                } while (visited[x][y]);
+
+                visited[x][y] = true;
+                for(int i = -1; i < 2; i++){
+                    for(int j = -1; j < 2; j++){
+                        if(i!=j&&x+i>=0&&x+i<width&&y+j>=0&&y+j<height
+                                && colorDifference(Color2d[x+i][y+j],Color2d[x][y])<=tolerance){
+                            stack.push(new Integer[]{x+i,y+j});
+                        }
+                    }
+                }
+                totalsRGB[0]+=getRed(Color2d[x][y]);
+                totalsRGB[1]+=getGreen(Color2d[x][y]);
+                totalsRGB[2]+=getRed(Color2d[x][y]);
+
+            }
+            return 0xFF<<24 + (totalsRGB[0]/totalPixels)<<16 + (totalsRGB[1]/totalPixels)<<8 +
+                    (totalsRGB[2]/totalPixels);
         }
-        return new int[]{0,0,0};
+
+    public int colorDifference(int color1, int color2){
+        return (getRed(color1)-getRed(color2))/3 + (getGreen(color1)-getGreen(color2))/3
+                + (getBlue(color1)-getBlue(color2))/3;
     }
 
     public String toString(){
         String result = "";
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
-                result+=Color2d[x][y]+" ";
+                result+=Integer.toHexString(Color2d[x][y])+" ";
             }
             result+="\n";
         }
@@ -93,7 +121,7 @@ public class ImageData {
     }
 
     // Finds the average color of a pixel and its 8 surrounding pixels
-    public int averageColor(int x, int y) {
+    private int averageColor(int x, int y) {
         int[][] subArray = new int[3][3];
         int[][] pixelWeight = { { 1, 1, 1 },
                                 { 1, 4, 1 },
