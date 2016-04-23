@@ -27,17 +27,32 @@ public class ImageData {
                                                       { 1, 4, 1 },
                                                       { 1, 1, 1 }};
 
-    public static final int[][] horizontalEdgeMatrix = { { 1, 1, 1 },
-                                                        { 0, 0, 0 },
-                                                        { -1, -1, -1 }};
+    public static final int[][] horizontalEdgeMatrix = {
+            {2, 2, 2, 2, 2},
+            {1, 1, 1, 1, 1 },
+            {0, 0, 0, 0, 0 },
+            {-1, -1, -1, -1, -1},
+            {-2, -2, -2, -2, -2}};
 
-    public static final int[][] verticalEdgeMatrix = {{1, 0, -1},
-                                                      {1, 0, -1},
-                                                      {1, 0, -1}};
+    public static final int[][] verticalEdgeMatrix = {
+            {2, 1, 0, -1, -2},
+            {2, 1, 0, -1, -2},
+            {2, 1, 0, -1, -2},
+            {2, 1, 0, -1, -2},
+            {2, 1, 0, -1, -2}};
 
-    public static final int[][] diagonalEdgeMatrix = {{1, 1, 0},
-                                                      {1, 0, -1},
-                                                      {0, -1, -1}};
+
+
+    public static final int[][] rightDiagonalEdgeMatrix = {
+            {3, 3, 2, 1, 0},
+            {3, 2, 1, 0, -1},
+            {2, 1, 0, -1, -2},
+            {1, 0, -1, -2, -3},
+            {0, -1, -2, 3, -3}};
+
+    public static final int[][] leftDiagonalEdgeMatrix = {{0, 1, 1},
+                                                          {-1, 0, 1},
+                                                          {-1, -1, 0}};
 
     public static final int[][] identityMatrix = {{0, 0, 0},
                                                   {0, 1, 0},
@@ -95,6 +110,13 @@ public class ImageData {
         return pixel;
     }
     // End bit-level magic
+
+    public static int averagePixel(int pixelOne, int pixelTwo) {
+        int r = (getRed(pixelOne) + getRed(pixelTwo)) / 2;
+        int g = (getGreen(pixelOne) + getGreen(pixelTwo)) / 2;
+        int b = (getBlue(pixelOne) + getBlue(pixelTwo)) / 2;
+        return newPixel(r, g, b, 0xff);
+    }
 
     //Finds the average color in a floodfilled area.
     public int averageAreaColor(int x, int y, int tolerance){
@@ -285,9 +307,9 @@ public class ImageData {
         int[][] rawImage = new int[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-
+                rawImage[x][y] = averagePixel(Color2d[x][y], img.Color2d[x][y]);
             }
         }
-        return null;
+        return new ImageData(rawImage, name);
     }
 }
