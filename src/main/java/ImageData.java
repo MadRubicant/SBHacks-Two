@@ -16,6 +16,14 @@ public class ImageData {
     public static int redMask = 0xff0000;
     public static int alphaMask = 0xff000000;
 
+    public static final int[][] averageColorMatrix = {{ 1, 1, 1 },
+                                                      { 1, 4, 1 },
+                                                      { 1, 1, 1 }};
+
+    public static final int[][] edgeDetectionMatrix = { { -1, -1, -1 },
+                                                        { -1, 8, -1 },
+                                                        { -1, -1, -1 }};
+    
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -29,7 +37,13 @@ public class ImageData {
             }
             
         }
+    }
 
+    public ImageData(int[][] colorData, String filename) {
+        name = filename;
+        width = colorData.length;
+        height = colorData[0].length;
+        Color2d = colorData;
     }
 
     // Begin bit-level magic
@@ -104,7 +118,7 @@ public class ImageData {
                 (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
     }
 
-    public int colorDifference(int color1, int color2){
+    public static int colorDifference(int color1, int color2){
         int red1 = getRed(color1)&0xFF;
         int red2 = getRed(color2)&0xFF;
         int redDiff = Math.abs((getRed(color1)&0xFF)-(getRed(color2)&0xFF));
@@ -184,5 +198,15 @@ public class ImageData {
 
         return newPixel((byte)(colorSums[0] / totalWeight), (byte)(colorSums[1] / totalWeight),
                 (byte)(colorSums[2] / totalWeight), (byte)(colorSums[3] / totalWeight));
+    }
+
+    public ImageData convoluteImage(int[][] convolutionMatrix) {
+        int[][] rawData = new int[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                rawData[x][y] = convolutePixel(x, y, convolutionMatrix);
+            }
+        }
+        return new ImageData(rawData, name);
     }
 }
