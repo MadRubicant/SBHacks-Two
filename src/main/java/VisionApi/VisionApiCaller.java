@@ -43,7 +43,7 @@ public class VisionApiCaller {
         imageToUpload = image;
     }
 
-    public void sendApiRequest(){
+    public List<EntityAnnotation> sendApiRequest(){
         try {
             vision = getVisionService();
             AnnotateImageResponse annotations = detectText(20);
@@ -53,11 +53,13 @@ public class VisionApiCaller {
             for(EntityAnnotation textInstance : textAnnotations){
                 System.out.println("Text:\n" + textInstance.get("description"));
             }
+
+            return textAnnotations;
         }
         catch (Exception e){
             System.out.println(e.getMessage());
             e.printStackTrace(System.out);
-            return;
+            return null;
         }
     }
 
