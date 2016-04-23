@@ -3,7 +3,9 @@ package VisionApi;
 import VisionApi.JSONClasses.AnnotateImageRequest;
 import VisionApi.JSONClasses.ApiImage;
 import VisionApi.JSONClasses.GoogleVisionRequest;
+import com.google.gson.Gson;
 
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
@@ -27,11 +29,35 @@ public class VisionApiCaller {
     }
 
     public void makePost(GoogleVisionRequest request) throws Exception{
+        Gson gson = new Gson();
+
         URL apiUrl = new URL(VISION_API_URL);
 
         HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
 
+        connection.setDoOutput(true);
         connection.setRequestMethod("POST");
+        DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
+        writer.write(gson.toJson(request).getBytes());
+        writer.flush();
+        writer.close();
+
+        int responseCode = connection.getResponseCode();
+
+        if(responseCode % 100 != 2) throw new IOException("API request returned code " + responseCode);
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        String line;
+        StringBuilder response = new StringBuilder();
+
+        while((line = in.readLine()) != null){
+            response.append(line + "\n");
+        }
+        in.close();
+        connection.disconnect();
+
+        System.out.println(response.toString());
     }
 
     public String base64Encode(){
