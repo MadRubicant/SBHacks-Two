@@ -7,6 +7,10 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.vision.v1.Vision;
 import com.google.api.services.vision.v1.VisionScopes;
 import com.google.api.services.vision.v1.model.*;
+import com.google.api.services.vision.v1.model.AnnotateImageRequest;
+import com.google.api.services.vision.v1.model.AnnotateImageResponse;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.Vertex;
 import com.google.common.collect.ImmutableList;
 
 import java.awt.BasicStroke;
@@ -19,6 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -40,8 +46,13 @@ public class VisionApiCaller {
     public void sendApiRequest(){
         try {
             vision = getVisionService();
-            List<EntityAnnotation> textAnnotations = detectText(20);
+            AnnotateImageResponse annotations = detectText(20);
+            List<EntityAnnotation> textAnnotations = annotations.getTextAnnotations();
             writeWithTextAnnotations(imageToUpload, Paths.get("out_img.jpg"), textAnnotations);
+
+            for(EntityAnnotation textInstance : textAnnotations){
+                System.out.println("Text:\n" + textInstance.get("description"));
+            }
         }
         catch (Exception e){
             System.out.println(e.getMessage());
@@ -59,18 +70,24 @@ public class VisionApiCaller {
                 .build();
     }
 
-    public List<EntityAnnotation> detectText(int maxResults) throws IOException {
+    public AnnotateImageResponse detectText(int maxResults) throws IOException {
         byte[] data = Files.readAllBytes(imageToUpload);
+
+        LinkedList<Feature> features = new LinkedList<Feature>();
+        features.add(new Feature()
+                .setType("TEXT_DETECTION")
+                .setMaxResults(maxResults));
+        features.add(new Feature()
+                .setType("LABEL_DETECTION")
+                .setMaxResults(maxResults));
+        features.add(new Feature()
+                .setType("IMAGE_PROPERTIES")
+                .setMaxResults(maxResults));
 
         AnnotateImageRequest request =
                 new AnnotateImageRequest()
                         .setImage(new Image().encodeContent(data))
-                        .setFeatures(ImmutableList.of(
-                                new Feature()
-                                        .setType("TEXT_DETECTION")
-                                        .setType("LABEL_DETECTION")
-                                        .setType("IMAGE_PROPERTIES")
-                                        .setMaxResults(maxResults)));
+                        .setFeatures(features);
         Vision.Images.Annotate annotate =
                 vision.images()
                         .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
@@ -86,7 +103,7 @@ public class VisionApiCaller {
                             ? response.getError().getMessage()
                             : "Unknown error getting image annotations");
         }
-        return response.getTextAnnotations();
+        return response;
     }
 
     private static void writeWithTextAnnotations(Path inputPath, Path outputPath, List<EntityAnnotation> entities)
