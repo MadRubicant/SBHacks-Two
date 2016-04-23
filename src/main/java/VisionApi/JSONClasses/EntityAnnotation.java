@@ -7,7 +7,7 @@ public class EntityAnnotation {
     public String mid;
     public String locale;
     public String description;
-    public int score;
+    public double score;
     public double confidence;
     public double topicality;
     public BoundingPoly boundingPoly;

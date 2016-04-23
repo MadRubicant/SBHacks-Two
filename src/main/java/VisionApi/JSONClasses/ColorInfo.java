@@ -5,6 +5,6 @@ package VisionApi.JSONClasses;
  */
 public class ColorInfo {
     public Color color;
-    public int score;
+    public double score;
     public double pixelFraction;
 }
