@@ -22,7 +22,7 @@ public class ImageData {
         height = inImage.getHeight();
         Color2d = new int[width][height];
         int[] RawData = new int[width * height];
-        inImage.getRGB(0, 0, width, height, RawData, 0, 0);
+        inImage.getRGB(0, 0, width, height, RawData, 0, width);
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Color2d[x][y] = RawData[x + y*width];
@@ -30,21 +30,21 @@ public class ImageData {
             
         }
     }
-    
-    public static int getRed(int pixel) {
-        return pixel & redMask;
+
+    public static byte getRed(int pixel) {
+        return (byte)(pixel & redMask);
     }
 
-    public static int getGreen(int pixel) {
-        return (pixel & greenMask) >> 8;
+    public static byte getGreen(int pixel) {
+        return (byte)((pixel & greenMask) >> 8);
     }
 
-    public static int getBlue(int pixel) {
-        return (pixel & blueMask) >> 16;
+    public static byte getBlue(int pixel) {
+        return (byte)((pixel & blueMask) >> 16);
     }
 
-    public static int getAlpha(int pixel) {
-        return (pixel & alphaMask) >> 24;
+    public static byte getAlpha(int pixel) {
+        return (byte)((pixel & alphaMask) >> 24);
     }
 
     //Finds the average color in a floodfilled area.
@@ -67,5 +67,19 @@ public class ImageData {
             result+="\n";
         }
         return result;
+    }
+
+    public byte[] toByteArray() {
+        byte[] unpackedImage = new byte[width * height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int pixel = Color2d[x][y];
+                unpackedImage[x + y * width] = getRed(pixel);
+                unpackedImage[x + y * width + 1] = getGreen(pixel);
+                unpackedImage[x + y * width + 2] = getBlue(pixel);
+                unpackedImage[x + y * width + 3] = getAlpha(pixel);
+            }
+        }
+        return unpackedImage;
     }
 }
