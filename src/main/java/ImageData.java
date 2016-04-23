@@ -92,7 +92,6 @@ public class ImageData {
             System.out.println(totalPixels);
             return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
                 (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
-
         }
 
     public int colorDifference(int color1, int color2){
@@ -116,6 +115,7 @@ public class ImageData {
         return result;
     }
 
+    // Returns a byte array for network streaming
     public byte[] toByteArray() {
         byte[] unpackedImage = new byte[width * height];
         for (int x = 0; x < width; x++) {
@@ -130,6 +130,7 @@ public class ImageData {
         return unpackedImage;
     }
 
+    // Finds the average color of a pixel and its 8 surrounding pixels
     private int averageColor(int x, int y) {
         int[][] subArray = new int[3][3];
         int[][] pixelWeight = { { 1, 1, 1 },
