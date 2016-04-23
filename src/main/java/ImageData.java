@@ -50,7 +50,7 @@ public class ImageData {
 
     public static int newPixel(byte r, byte g, byte b, byte a) {
         int pixel = 0;
-        pixel |= r | (g << 8) | (b << 16) | (a << 24);
+        pixel |= (r << 16) | (g << 8) | (b << 8) | (a << 24);
         return pixel;
     }
     // End bit-level magic
