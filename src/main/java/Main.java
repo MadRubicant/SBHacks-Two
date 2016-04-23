@@ -20,6 +20,8 @@ public class Main {
             System.exit(0);
         }
         System.out.println("Successfully read image.");
+        ImageData data = new ImageData(img, imageFileName);
+        System.out.println(data.toString());
 
     }
 }
