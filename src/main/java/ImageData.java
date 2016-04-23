@@ -33,7 +33,7 @@ public class ImageData {
 
     // Begin bit-level magic
     public static byte getRed(int pixel) {
-        return (byte)(pixel & redMask);
+        return (byte)((pixel & redMask)>>16);
     }
 
     public static byte getGreen(int pixel) {
@@ -41,7 +41,7 @@ public class ImageData {
     }
 
     public static byte getBlue(int pixel) {
-        return (byte)((pixel & blueMask) >> 16);
+        return (byte)((pixel & blueMask));
     }
 
     public static byte getAlpha(int pixel) {
@@ -50,13 +50,17 @@ public class ImageData {
 
     public static int newPixel(byte r, byte g, byte b, byte a) {
         int pixel = 0;
-        pixel |= r | (g << 8) | (b << 16) | (a << 24);
+        pixel |= ((a << 24)&alphaMask);
+        pixel |= ((r << 16)&redMask);
+        pixel |= ((g << 8)&greenMask);
+        pixel |= b&blueMask;
         return pixel;
     }
     // End bit-level magic
 
     //Finds the average color in a floodfilled area.
     public int averageAreaColor(int x, int y, int tolerance){
+            System.out.println("Starting fill at "+x+", "+y);
             Stack<Integer[]> stack = new Stack<Integer[]>();
             boolean[][] visited = new boolean[width][height];
             int totalPixels = 0;
@@ -64,34 +68,40 @@ public class ImageData {
             int[] totalsRGB = new int[3];
 
             while(!stack.isEmpty()){
-                do {
-                    if(stack.isEmpty()) break;
-                    Integer[] current = stack.pop();
-                    x = current[0];
-                    y = current[1];
-                } while (visited[x][y]);
+                Integer[] current = stack.pop();
+                x = current[0];
+                y = current[1];
 
-                visited[x][y] = true;
-                for(int i = -1; i < 2; i++){
-                    for(int j = -1; j < 2; j++){
-                        if(i!=j&&x+i>=0&&x+i<width&&y+j>=0&&y+j<height
-                                && colorDifference(Color2d[x+i][y+j],Color2d[x][y])<=tolerance){
-                            stack.push(new Integer[]{x+i,y+j});
+                if(!visited[x][y]) {
+                    totalPixels++;
+                    visited[x][y] = true;
+                    for (int i = -1; i < 2; i++) {
+                        for (int j = -1; j < 2; j++) {
+                            if (i != j && x + i >= 0 && x + i < width && y + j >= 0 && y + j < height
+                                    && colorDifference(Color2d[x + i][y + j], Color2d[x][y]) <= tolerance) {
+                                stack.push(new Integer[]{x + i, y + j});
+                            }
                         }
                     }
+                    totalsRGB[0] += getRed(Color2d[x][y])&0xFF;
+                    totalsRGB[1] += getGreen(Color2d[x][y])&0xFF;
+                    totalsRGB[2] += getBlue(Color2d[x][y])&0xFF;
                 }
-                totalsRGB[0]+=getRed(Color2d[x][y]);
-                totalsRGB[1]+=getGreen(Color2d[x][y]);
-                totalsRGB[2]+=getRed(Color2d[x][y]);
-
             }
-            return 0xFF<<24 + (totalsRGB[0]/totalPixels)<<16 + (totalsRGB[1]/totalPixels)<<8 +
-                    (totalsRGB[2]/totalPixels);
+            System.out.println(totalsRGB[0]+" "+totalsRGB[1]+" "+totalsRGB[2]);
+            System.out.println(totalPixels);
+            return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels),
+                (byte)(totalsRGB[2]/totalPixels),(byte)0xFF);
         }
 
     public int colorDifference(int color1, int color2){
-        return (getRed(color1)-getRed(color2))/3 + (getGreen(color1)-getGreen(color2))/3
-                + (getBlue(color1)-getBlue(color2))/3;
+        int red1 = getRed(color1)&0xFF;
+        int red2 = getRed(color2)&0xFF;
+        int redDiff = Math.abs((getRed(color1)&0xFF)-(getRed(color2)&0xFF));
+        int greenDiff = Math.abs((getGreen(color1)&0xFF)-(getGreen(color2)&0xFF));
+        int blueDiff = Math.abs((getBlue(color1)&0xFF)-(getBlue(color2)&0xFF));
+        int result = redDiff+greenDiff+blueDiff;
+        return result;
     }
 
     public String toString(){
@@ -105,6 +115,7 @@ public class ImageData {
         return result;
     }
 
+    // Returns a byte array for network streaming
     public byte[] toByteArray() {
         byte[] unpackedImage = new byte[width * height];
         for (int x = 0; x < width; x++) {
@@ -119,6 +130,7 @@ public class ImageData {
         return unpackedImage;
     }
 
+    // Finds the average color of a pixel and its 8 surrounding pixels
     private int averageColor(int x, int y) {
         int[][] subArray = new int[3][3];
         int[][] pixelWeight = { { 1, 1, 1 },

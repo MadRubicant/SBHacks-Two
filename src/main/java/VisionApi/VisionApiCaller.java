@@ -2,8 +2,10 @@ package VisionApi;
 
 import VisionApi.JSONClasses.*;
 import com.google.gson.Gson;
+import VisionApi.JSONClasses.AnnotateImageRequest;
+import VisionApi.JSONClasses.ApiImage;
+import VisionApi.JSONClasses.GoogleVisionRequest;
 
-import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
@@ -74,7 +76,6 @@ public class VisionApiCaller {
 
         HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
 
-        connection.setDoOutput(true);
         connection.setRequestMethod("POST");
         DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
         writer.write(requestString.getBytes());
