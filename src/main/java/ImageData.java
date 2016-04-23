@@ -85,8 +85,7 @@ public class ImageData {
                 totalsRGB[2]+=getRed(Color2d[x][y]);
 
             }
-            return 0xFF<<24 + (totalsRGB[0]/totalPixels)<<16 + (totalsRGB[1]/totalPixels)<<8 +
-                    (totalsRGB[2]/totalPixels);
+            return newPixel((byte)(totalsRGB[0]/totalPixels), (byte)(totalsRGB[1]/totalPixels), (byte)(totalsRGB[2]/totalPixels), (byte)0xff);
         }
 
     public int colorDifference(int color1, int color2){
