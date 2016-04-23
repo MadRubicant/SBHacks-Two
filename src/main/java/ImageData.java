@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -9,6 +10,10 @@ public class ImageData {
     public int height;
     public String name;
 
+    public static int redMask = 0xff;
+    public static int greenMask = 0xff00;
+    public static int blueMask = 0xff0000;
+    public static int alphaMask = 0xff000000;
     public ImageData(BufferedImage inImage, String filename) {
         name = filename;
         width = inImage.getWidth();
@@ -21,6 +26,5 @@ public class ImageData {
                 Color2d[x][y] = RawData[x * width + y];
             }
         }
-
     }
 }
