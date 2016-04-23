@@ -23,6 +23,7 @@ public class Main {
             System.exit(0);
         }
         ImageData Image = new ImageData(img, imageFileName);
+        Image.toBufferedImage();
         System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
         System.out.println("Successfully read image.");
 
@@ -33,7 +34,7 @@ public class Main {
         if(true) return;
 
         ImageData data = new ImageData(img, imageFileName);
-        System.out.println(data.toString());
+        //System.out.println(data.toString());
 
     }
 }
