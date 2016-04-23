@@ -22,6 +22,7 @@ public class Main {
             System.exit(0);
         }
         ImageData Image = new ImageData(img, imageFileName);
+        System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
         VisionApiCaller apiCaller = new VisionApiCaller(Image.toByteArray());
         System.out.println("Successfully read image.");
         ImageData data = new ImageData(img, imageFileName);
