@@ -56,7 +56,7 @@ public class Main {
     }
 
     public static void WilliamTest() {
-        String filename = "test-images/pill6.jpg";
+        String filename = "test-images/pill2.jpg";
         BufferedImage img = null;
         try {
             img = ImageIO.read(new File(filename));
@@ -64,20 +64,26 @@ public class Main {
         catch (IOException e) {
             ;
         }
-        ImageData Image = new ImageData(img, filename);
+        ImageData image = new ImageData(img, filename);
         //System.out.println(Image.toString());
-        ImageData Horizontal = Image.newConvoluteImage(ImageData.horizontalEdgeMatrix);
-        ImageData Vertical = Image.newConvoluteImage(ImageData.verticalEdgeMatrix);
-        ImageData DiagLeft = Image.newConvoluteImage(ImageData.leftDiagonalEdgeMatrix);
-        ImageData DiagRight = Image.newConvoluteImage(ImageData.rightDiagonalEdgeMatrix);
-        ImageData Cardinal = Horizontal.averageWith(Vertical);
-        ImageData Diag = DiagLeft.averageWith(DiagRight);
-        Image = Cardinal.averageWith(Diag);
-        Image.convoluteImage(ImageData.averageColorMatrix);
+        //Image.convoluteImage(ImageData.averageColorMatrix);
+        image = runEdgeDetection(image);
+        image.makeBlackWhite();
+        //Image.convoluteImage(ImageData.averageColorMatrix);
+        //Image.convoluteImage(ImageData.sharpenMatrix);
         //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
         //System.out.println(Image.toString());
-        Image.writeImage("test.png");
-        System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
+        image.writeImage("test.png");
+        System.out.printf("Average color is %d\n", image.averageColor(200, 200));
 
+    }
+    private static ImageData runEdgeDetection(ImageData image) {
+        ImageData Horizontal = image.newConvoluteImage(ImageData.horizontalEdgeMatrix);
+        ImageData Vertical = image.newConvoluteImage(ImageData.verticalEdgeMatrix);
+        ImageData DiagLeft = image.newConvoluteImage(ImageData.leftDiagonalEdgeMatrix);
+        ImageData DiagRight = image.newConvoluteImage(ImageData.rightDiagonalEdgeMatrix);
+        ImageData Cardinal = Horizontal.averageWith(Vertical);
+        ImageData Diag = DiagLeft.averageWith(DiagRight);
+        return Cardinal.averageWith(Diag);
     }
 }

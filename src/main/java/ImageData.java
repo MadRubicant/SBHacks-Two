@@ -23,9 +23,12 @@ public class ImageData {
     public static int redMask = 0xff0000;
     public static int alphaMask = 0xff000000;
 
-    public static final int[][] averageColorMatrix = {{ 1, 1, 1 },
-                                                      { 1, 4, 1 },
-                                                      { 1, 1, 1 }};
+    public static final int[][] averageColorMatrix = {
+            {1, 1, 1, 1, 1},
+            {1, 2, 4, 2, 1},
+            {1, 4, 8, 4, 1},
+            {1, 2, 4, 2, 1},
+            {1, 1, 1, 1, 1}};
 
     public static final int[][] horizontalEdgeMatrix = {
             {2, 2, 2, 2, 2},
@@ -57,6 +60,13 @@ public class ImageData {
             {-3, -2, -1, 0, 1},
             {-3, -3, -2, -1, 0}};
 
+    public static final int[][] sharpenMatrix = {
+            {0, 0, -1, 0, 0},
+            {0, -1, 2, -1, 0},
+            {-1, 2, 4, 2, -1},
+            {0, -1, 2, -1, 0},
+            {0, 0, -1, 0, 0}};
+
     public static final int[][] identityMatrix = {{0, 0, 0},
                                                   {0, 1, 0},
                                                   {0, 0, 0}};
@@ -75,7 +85,6 @@ public class ImageData {
             for (int y = 0; y < height; y++) {
                 Color2d[x][y] = RawData[x + y*width];
             }
-            
         }
         convertToLuminosity();
     }
@@ -259,7 +268,8 @@ public class ImageData {
                 rawData[x][y] = convolutePixel(x, y, convolutionMatrix);
             }
         }
-        return new ImageData(rawData, name);
+        ImageData image =  new ImageData(rawData, name);
+        return image;
     }
 
     public void convoluteImage(int[][] convolutionMatrix) {
@@ -314,5 +324,19 @@ public class ImageData {
             }
         }
         return new ImageData(rawImage, name);
+    }
+
+    public void makeBlackWhite() {
+        int white = 225;
+        int[][] rawData = new int[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int pixel = convolutePixel(x, y, averageColorMatrix);
+                if (getBlue(pixel) + getGreen(pixel) + getRed(pixel) > white)
+                    rawData[x][y] = newPixel(255, 255, 255, 255);
+                else rawData[x][y] = newPixel(0, 0, 0, 255);
+            }
+        }
+        Color2d = rawData;
     }
 }
