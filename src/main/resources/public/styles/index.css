@@ -1,0 +1,24 @@
+.outer{
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.middle{
+  display: table-cell;
+  vertical-align: middle;
+  padding: 0;
+  margin: 0;
+}
+
+.inner{
+  margin: auto;
+  padding: 10px;
+  width: 500px;
+  text-align: center;
+}

@@ -48,7 +48,7 @@ public class VisionApiCaller {
             vision = getVisionService();
             AnnotateImageResponse annotations = detectText(20);
             List<EntityAnnotation> textAnnotations = annotations.getTextAnnotations();
-            writeWithTextAnnotations(imageToUpload, Paths.get("out_img.jpg"), textAnnotations);
+            // writeWithTextAnnotations(imageToUpload, Paths.get("out_img.jpg"), textAnnotations);
 
             for(EntityAnnotation textInstance : textAnnotations){
                 System.out.println("Text:\n" + textInstance.get("description"));

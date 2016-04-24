@@ -1,3 +1,5 @@
 #!/bin/bash
 
-mvn compile && echo "serve" | mvn exec:java -Dexec.mainClass="Main"
+while true; do
+    mvn compile && echo "serve" | mvn exec:java -Dexec.mainClass="Main"
+done
