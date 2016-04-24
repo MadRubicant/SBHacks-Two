@@ -69,21 +69,24 @@ public class Server {
         List<EntityAnnotation> textAnnotations = apiCaller.sendApiRequest();
         GoodRxResponse goodRxResponse = null;
         if(textAnnotations != null){
-            goodRxResponse = TextRecognition.processTextWithGoodRx(textAnnotations);
+            goodRxResponse = TextRecognition.processTextWithGoodRx(textAnnotations,pillColor);
         }
         else{
             System.out.println("Sorry, no text found.");
 
             // do other stuff
         }
-
-        for(int i = 0; i < goodRxResponse.results.length; i++){
-            for(int j = 0; j < goodRxResponse.results[i].pills.length; j++){
-                response.possible_pills.add(goodRxResponse.results[i].pills[j].display);
-                response.possible_images.add(goodRxResponse.results[i].pills[j].image);
+        if(goodRxResponse!=null && goodRxResponse.results!=null) {
+            if(goodRxResponse.results.length==0){
+                goodRxResponse = TextRecognition.processTextWithGoodRx(textAnnotations,"any");
+            }
+            for (int i = 0; i < goodRxResponse.results.length; i++) {
+                for (int j = 0; j < goodRxResponse.results[i].pills.length; j++) {
+                    response.possible_pills.add(goodRxResponse.results[i].pills[j].display);
+                    response.possible_images.add(goodRxResponse.results[i].pills[j].image);
+                }
             }
         }
-
         /*response.possible_pills.add("Adderall");
         response.possible_pills.add("Mentats");
         response.possible_pills.add("Mentats");
