@@ -56,7 +56,7 @@ public class Main {
     }
 
     public static void WilliamTest() {
-        String filename = "test-images/pill2.jpg";
+        String filename = "test-images/image.jpg";
         BufferedImage img = null;
         try {
             img = ImageIO.read(new File(filename));
@@ -65,9 +65,11 @@ public class Main {
             ;
         }
         ImageData image = new ImageData(img, filename);
+        image.convertToLuminosity();
         //System.out.println(Image.toString());
         //Image.convoluteImage(ImageData.averageColorMatrix);
         image = runEdgeDetection(image);
+        //image.makeBlackWhite();
         //Image.convoluteImage(ImageData.averageColorMatrix);
         //Image.convoluteImage(ImageData.sharpenMatrix);
         //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
