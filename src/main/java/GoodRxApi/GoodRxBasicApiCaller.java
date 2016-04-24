@@ -1,7 +1,7 @@
 package GoodRxApi;
 
 import com.google.gson.Gson;
-import GoodRxApi.JSONClasses.GoodRxResponse;
+import GoodRxApi.JSONClasses.GoodRxBasicResponse;
 
 
 import java.io.BufferedReader;
@@ -10,26 +10,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
 /**
  * Created by sierra on 4/23/16.
  */
-public class GoodRxApiCaller {
-    public static String GOODRX_API_URL = "http://www.goodrx.com/mobile-api/v3/pill-identifier/";
-    public String imprint;
-    public String color;
-    public String shape;
+public class GoodRxBasicApiCaller {
+    public static String GOODRX_API_URL = "http://www.goodrx.com/mobile-api/v3/pill-imprint?search=";
 
+    String imprint;
 
-    public GoodRxApiCaller(String myImprint, String myColor, String myShape){
-        imprint = myImprint;
-        color = myColor;
-        shape = myShape;
+    public GoodRxBasicApiCaller(String text){
+        imprint = text;
     }
 
-    public GoodRxResponse sendApiRequest(int numResults){
+    public GoodRxBasicResponse sendApiRequest(){
 
         try{
-            return makePost(imprint, color, shape, numResults);
+            return makePost(imprint);
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -38,9 +35,9 @@ public class GoodRxApiCaller {
 
     }
 
-    public GoodRxResponse makePost(String imprint, String color, String shape, int numResults) throws Exception{
+    public GoodRxBasicResponse makePost(String request) throws Exception{
         Gson gson = new Gson();
-        String urlToSend = GOODRX_API_URL + imprint + "?color=" + color + "&shape=" + shape + "&start=0&end=" + numResults;
+        String urlToSend = GOODRX_API_URL + request;
         URL apiUrl = new URL(urlToSend);
 
         HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
@@ -62,9 +59,7 @@ public class GoodRxApiCaller {
         connection.disconnect();
         System.out.println(response.toString());
 
-        return(gson.fromJson(response.toString(), GoodRxResponse.class));
+        return(gson.fromJson(response.toString(), GoodRxBasicResponse.class));
     }
-
 }
-
 

@@ -17,8 +17,9 @@ public class TextRecognition {
             String textIn = "" + textInstance.get("description");
             System.out.println("Text:\n" + textIn);
 
-            GoodRxApiCaller goodRxApiCaller = new GoodRxApiCaller(textIn);
-            GoodRxResponse goodRxResponse = goodRxApiCaller.sendApiRequest();
+
+            GoodRxApiCaller goodRxApiCaller = new GoodRxApiCaller(textIn, "any", "any");
+            GoodRxResponse goodRxResponse = goodRxApiCaller.sendApiRequest(1);
         }
     }
 
