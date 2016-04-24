@@ -29,6 +29,7 @@ public class Server {
         Gson gson = new Gson();
 
         IdentifyApiCall request = gson.fromJson(req.body(), IdentifyApiCall.class);
+        String file64 = request.file;
 
         IdentifyApiResponse response = new IdentifyApiResponse();
         response.possible_pills.add("Adderall");

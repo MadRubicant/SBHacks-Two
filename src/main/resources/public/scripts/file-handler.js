@@ -1,7 +1,7 @@
 var sendImageToBackend = function(encodedFile){
     $.post( "/identify", JSON.stringify(
         {
-            file: "test"
+            file: encodedFile
         }),
     function( data ) {
         console.log(data);
