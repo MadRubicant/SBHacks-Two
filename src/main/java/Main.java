@@ -68,7 +68,6 @@ public class Main {
         //System.out.println(Image.toString());
         //Image.convoluteImage(ImageData.averageColorMatrix);
         image = runEdgeDetection(image);
-        image.makeBlackWhite();
         //Image.convoluteImage(ImageData.averageColorMatrix);
         //Image.convoluteImage(ImageData.sharpenMatrix);
         //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
