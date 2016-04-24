@@ -32,7 +32,7 @@ public class Main {
             //System.exit(0);
         }
 
-        WilliamTest();
+        // WilliamTest();
 
         System.out.println("Successfully read image.");
 
