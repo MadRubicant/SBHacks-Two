@@ -86,7 +86,6 @@ public class ImageData {
                 Color2d[x][y] = RawData[x + y*width];
             }
         }
-        convertToLuminosity();
     }
 
     public ImageData(int[][] colorData, String filename) {
