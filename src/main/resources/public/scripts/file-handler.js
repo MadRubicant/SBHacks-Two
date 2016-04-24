@@ -5,6 +5,7 @@ var sendImageToBackend = function(encodedFile){
         }),
     function( data ) {
         console.log(data);
+        displayResults(data);
     },
     "json")
     .fail(function(err){

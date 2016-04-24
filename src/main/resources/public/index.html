@@ -3,26 +3,30 @@
 <head>
     <link rel="stylesheet" type="text/css" href="/styles/index.css">
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Roboto:thin">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <script src="/scripts/jquery-2.2.3.min.js"></script>
 </head>
 <body>
 
 <div class="outer">
-    <div class="middle">
-        <div class="inner">
-            <div>
+                <h1>Visual Pill Recognizer</h1>
                 <div class="picker">
-                    <h3>Upload Image</h3>
+                    <h3>Upload an image of a pill, and we'll try to identify it. (Powered by the GoodRx API!)</h3>
                     <br>
-                    <input type="file" id="filePicker">
+                    <label class="btn btn-primary" for="filePicker">
+                        <input type="file" id="filePicker" style="display:none;">
+                        Upload Picture
+                    </label>
                 </div>
-            </div>
-        </div>
-    </div>
+                <div>
+                    <ul id  = "results" class="row">
+
+                    </ul>
+                </div>
 </div>
 
 </body>
-
+<script src="/scripts/display.js"></script>
 <script src="/scripts/file-handler.js"></script>
 
 </html>

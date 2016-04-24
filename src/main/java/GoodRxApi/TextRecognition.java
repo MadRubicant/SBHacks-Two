@@ -21,7 +21,7 @@ public class TextRecognition {
             //textIn = textIn.replace('\n', ' ');
 
             GoodRxApiCaller goodRxApiCaller = new GoodRxApiCaller(textIn, "any", "any");
-            goodRxResponse = goodRxApiCaller.sendApiRequest(1);
+            goodRxResponse = goodRxApiCaller.sendApiRequest(10);
             if(goodRxResponse != null)
                 return goodRxResponse;
         }
