@@ -6,28 +6,26 @@ public class ColorWrapper extends Color{
         super(argb);
     }
     private static class ColorName{
-        Color color;
+        int[] hueRange;
         String name;
-        public ColorName(String name, Color color){
+        public ColorName(String name, int[] hueRange){
             this.name = name;
-            this.color = color;
+            this.hueRange = hueRange;
         }
     }
     public static ArrayList<ColorName> colorNames;
     static {
         colorNames = new ArrayList<ColorName>();
-        colorNames.add(new ColorName("Red",new Color(255,0,0)));
-        colorNames.add(new ColorName("Pink",new Color(255,133,196)));
-        colorNames.add(new ColorName("Orange",new Color(255,138,0)));
-        colorNames.add(new ColorName("Yellow",new Color(255,255,0)));
-        colorNames.add(new ColorName("Green",new Color(0,255,0)));
-        colorNames.add(new ColorName("Blue",new Color(0,0,255)));
-        colorNames.add(new ColorName("Purple",new Color(192,0,255)));
-        colorNames.add(new ColorName("Brown",new Color(135,77,41)));
-        colorNames.add(new ColorName("Black",new Color(0,0,0)));
-        colorNames.add(new ColorName("Gray",new Color(128,128,128)));
-        colorNames.add(new ColorName("White",new Color(255,255,255)));
+        colorNames.add(new ColorName("Red",new int[]{0,19}));
+        colorNames.add(new ColorName("Orange",new int[]{19,44}));
+        colorNames.add(new ColorName("Yellow",new int[]{44,66}));
+        colorNames.add(new ColorName("Green",new int[]{66,150}));
+        colorNames.add(new ColorName("Blue",new int[]{150,257}));
+        colorNames.add(new ColorName("Purple",new int[]{257,299}));
+        colorNames.add(new ColorName("Pink",new int[]{299,339}));
+        colorNames.add(new ColorName("Red",new int[]{339,360}));
     }
+
     private int MSE(Color c){
         return ((int)Math.pow((getRed()-c.getRed()),2)+(int)Math.pow(getGreen()-c.getGreen(),2)
                 +(int)Math.pow(getBlue()-c.getBlue(),2))/3;
@@ -35,15 +33,17 @@ public class ColorWrapper extends Color{
 
     public String closestColor(){
         String closest = "";
-        int minMSE = MSE(colorNames.get(0).color);
-        closest = colorNames.get(0).name;
+        float[] hsl = new float[3];
+        Color.RGBtoHSB(getRed(),getGreen(),getBlue(),hsl);
         for(ColorName name : colorNames){
-            System.out.println(name.name);
-            int newMSE = MSE(name.color);
-            if(newMSE<minMSE){
+            if(name.hueRange[0]<=hsl[0]*360&&hsl[0]*360<=name.hueRange[1]){
                 closest = name.name;
-                minMSE = newMSE;
             }
+        }
+        if(hsl[1]<.1){
+            if(hsl[2]<.1) closest = "Black";
+            else if(hsl[2]>.9) closest = "White";
+            else closest = "Gray";
         }
         return closest;
     }
