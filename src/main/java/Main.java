@@ -17,19 +17,24 @@ public class Main {
         Scanner in = new Scanner(System.in);
 
         String imageFileName = in.nextLine();
+
+        if(imageFileName.equals("serve")){
+            Server server = new Server();
+            server.setup();
+            return;
+        }
+
         BufferedImage img = null;
         try {
             img = ImageIO.read(new File(imageFileName));
         } catch (IOException e) {
             System.out.println("ERROR: could not read image.");
-            System.exit(0);
+            //System.exit(0);
         }
 
-        System.out.println("Successfully read image.");
+        WilliamTest();
 
-        ImageData Image = new ImageData(img, imageFileName);
-        Image.toBufferedImage();
-        System.out.printf("Average color is %d\n", Image.averageColor(200, 200));
+        System.out.println("Successfully read image.");
 
         VisionApiCaller apiCaller = new VisionApiCaller(Paths.get(imageFileName));
         List<EntityAnnotation> textAnnotations = apiCaller.sendApiRequest();
@@ -48,5 +53,36 @@ public class Main {
         ImageData data = new ImageData(img, imageFileName);
         //System.out.println(data.toString());
 
+    }
+
+    public static void WilliamTest() {
+        String filename = "test-images/pill2.jpg";
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(new File(filename));
+        }
+        catch (IOException e) {
+            ;
+        }
+        ImageData image = new ImageData(img, filename);
+        //System.out.println(Image.toString());
+        //Image.convoluteImage(ImageData.averageColorMatrix);
+        image = runEdgeDetection(image);
+        //Image.convoluteImage(ImageData.averageColorMatrix);
+        //Image.convoluteImage(ImageData.sharpenMatrix);
+        //Image.convoluteImage(ImageData.diagonalEdgeMatrix);
+        //System.out.println(Image.toString());
+        image.writeImage("test.png");
+        System.out.printf("Average color is %d\n", image.averageColor(200, 200));
+
+    }
+    private static ImageData runEdgeDetection(ImageData image) {
+        ImageData Horizontal = image.newConvoluteImage(ImageData.horizontalEdgeMatrix);
+        ImageData Vertical = image.newConvoluteImage(ImageData.verticalEdgeMatrix);
+        ImageData DiagLeft = image.newConvoluteImage(ImageData.leftDiagonalEdgeMatrix);
+        ImageData DiagRight = image.newConvoluteImage(ImageData.rightDiagonalEdgeMatrix);
+        ImageData Cardinal = Horizontal.averageWith(Vertical);
+        ImageData Diag = DiagLeft.averageWith(DiagRight);
+        return Cardinal.averageWith(Diag);
     }
 }
